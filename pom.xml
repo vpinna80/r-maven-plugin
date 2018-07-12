@@ -18,7 +18,7 @@
 			<email>valentino.pinna@bancaditalia.it</email>
 		</developer>
 	</developers>
-	
+
 	<organization>
 		<name>Banca d'Italia</name>
 		<url>http://www.bancaditalia.it/</url>
@@ -36,7 +36,7 @@
 		<connection>scm:git:https://github.com/vpinna80/r-maven-plugin.git</connection>
 		<developerConnection>scm:git:https://github.com/vpinna80/r-maven-plugin.git</developerConnection>
 	</scm>
-	
+
 	<issueManagement>
 		<system>GitHub</system>
 		<url>https://github.com/vpinna80/r-maven-plugin/issues</url>
@@ -275,6 +275,23 @@
 					<nexusUrl>https://oss.sonatype.org/</nexusUrl>
 					<autoReleaseAfterClose>true</autoReleaseAfterClose>
 				</configuration>
+			</plugin>
+			<plugin>
+				<groupId>com.github.github</groupId>
+				<artifactId>site-maven-plugin</artifactId>
+				<version>0.12</version>
+				<executions>
+					<execution>
+						<phase>site-deploy</phase>
+						<goals>
+							<goal>site</goal>
+						</goals>
+						<configuration>
+							<message>Updating Maven generated site</message>
+							<server>github</server>
+						</configuration>
+					</execution>
+				</executions>
 			</plugin>
 		</plugins>
 	</build>
