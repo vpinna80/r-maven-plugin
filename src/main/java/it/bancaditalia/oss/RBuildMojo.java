@@ -10,7 +10,7 @@ import org.rosuda.JRI.REXP;
 import org.rosuda.JRI.Rengine;
 
 /**
- * Goal which runs R CMD CHECK.
+ * Goal which runs R CMD BUILD.
  */
 @Mojo(name = "build", defaultPhase = LifecyclePhase.PACKAGE)
 public class RBuildMojo extends AbstractRMojo

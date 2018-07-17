@@ -22,31 +22,31 @@ import com.sun.jna.Platform;
 
 public abstract class AbstractRMojo extends AbstractMojo
 {
-	private static Rengine													engine;
+	private static Rengine															engine;
 
-	@Component protected MavenProjectHelper									mavenProjectHelper;
-	@Parameter(defaultValue = "${project}") protected MavenProject			project;
-	@Parameter(defaultValue = "${session}") protected MavenSession			session;
+	@Component protected MavenProjectHelper											mavenProjectHelper;
+	@Parameter(defaultValue = "${project}", readonly = true) protected MavenProject	project;
+	@Parameter(defaultValue = "${session}", readonly = true) protected MavenSession	session;
 
 	/**
 	 * Location of R installation directory. Default value is taken from R_HOME environment variable.
 	 */
-	@Parameter(defaultValue = "${env.R_HOME}", property = "rHome") File		rHome;
+	@Parameter(defaultValue = "${env.R_HOME}", property = "rHome") File				rHome;
 
 	/**
 	 * Additional paths where to locate shared libraries needed by R and R packages.
 	 */
-	@Parameter(property = "sharedLibs") File[]								sharedLibs;
+	@Parameter(property = "sharedLibs") File[]										sharedLibs;
 
 	/**
 	 * True if the artifact produced by the build should be attached to the project.
 	 */
-	@Parameter(defaultValue = "true", property = "attachArtifact") boolean	attachArtifact;
+	@Parameter(defaultValue = "true", property = "attachArtifact") boolean			attachArtifact;
 
 	/**
 	 * Classifier of produced R artifact.
 	 */
-	@Parameter(property = "classifier") String								classifier;
+	@Parameter(property = "classifier") String										classifier;
 
 	private interface libc extends Library
 	{
@@ -102,11 +102,10 @@ public abstract class AbstractRMojo extends AbstractMojo
 				sysPathsField.setAccessible(true);
 				sysPathsField.set(null, null);
 
-				
 				try
 				{
 					System.loadLibrary("jri");
-				} 
+				}
 				catch (UnsatisfiedLinkError e)
 				{
 					if (!e.getMessage().endsWith("already loaded in another classloader"))
@@ -166,7 +165,7 @@ public abstract class AbstractRMojo extends AbstractMojo
 				return res;
 		}
 	}
-	
+
 	protected String checkRPackageVersion() throws MojoExecutionException
 	{
 		Matcher versionMatcher = Pattern.compile("(\\d+[-.]\\d+([-.]\\d+)?).*").matcher(project.getVersion());
@@ -176,7 +175,7 @@ public abstract class AbstractRMojo extends AbstractMojo
 			throw new MojoExecutionException(
 					"Project version \"" + project.getVersion() + "\" does not match regular expression \"(\\d+[-.]\\d+([-.]\\d+)?).*\"");
 	}
-	
+
 	protected void setupDirectories()
 	{
 		new File(project.getBuild().getDirectory()).mkdirs();

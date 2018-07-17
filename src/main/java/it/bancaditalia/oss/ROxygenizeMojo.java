@@ -8,7 +8,7 @@ import org.apache.maven.plugins.annotations.Parameter;
 import org.rosuda.JRI.Rengine;
 
 /**
- * Goal which runs R CMD CHECK.
+ * Goal which runs <code>devtools::document.</code>
  */
 @Mojo(name = "document", defaultPhase = LifecyclePhase.COMPILE)
 public class ROxygenizeMojo extends AbstractRMojo

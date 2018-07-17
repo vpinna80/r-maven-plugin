@@ -187,6 +187,11 @@
 				<artifactId>maven-plugin-plugin</artifactId>
 				<version>3.5.2</version>
 			</plugin>
+			<plugin>
+				<groupId>com.github.github</groupId>
+				<artifactId>site-maven-plugin</artifactId>
+				<version>0.12</version>
+			</plugin>
 		</plugins>
 	</reporting>
 
