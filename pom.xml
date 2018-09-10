@@ -9,6 +9,12 @@
 	<packaging>maven-plugin</packaging>
 
 	<name>r-maven-plugin</name>
+	<description>
+		This plugin brings into Maven the lifecycle of an R package.
+		It builds onto the existing R installation to perform build, check, etc.
+		It provides means to complete a DESCRIPTION file with version, etc.
+		In the future, It will allow to deploy the project to CRAN as well as a Maven artifact repository.
+	</description>
 
 	<developers>
 		<developer>
