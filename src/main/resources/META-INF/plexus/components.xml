@@ -1,3 +1,4 @@
+<?xml version="1.0" encoding="UTF-8"?>
 <component-set xlmns="http://plexus.codehaus.org/xsd/components-1.3.0.xsd">
 	<components>
 		<component>
@@ -9,8 +10,9 @@
 					<process-sources>it.bancaditalia.oss:r-maven-plugin:sources</process-sources>
 					<process-resources>org.apache.maven.plugins:maven-resources-plugin:resources</process-resources>
 					<compile>it.bancaditalia.oss:r-maven-plugin:document</compile>
-					<prepare-package>it.bancaditalia.oss:r-maven-plugin:check</prepare-package>
+					<prepare-package>it.bancaditalia.oss:r-maven-plugin:validate</prepare-package>
 					<package>it.bancaditalia.oss:r-maven-plugin:build</package>
+					<integration-test>it.bancaditalia.oss:r-maven-plugin:check</integration-test>
 					<install>org.apache.maven.plugins:maven-install-plugin:install</install>
 					<deploy>org.apache.maven.plugins:maven-deploy-plugin:deploy</deploy>
 				</phases>

@@ -1,0 +1,7 @@
+Package: ${project.artifactId}
+Version: ${project.version}
+License: 
+Title: ${project.name}
+Description: ${project.description}
+Author: 
+Maintainer: 

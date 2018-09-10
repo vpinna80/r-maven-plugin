@@ -23,7 +23,7 @@ public class ROxygenizeMojo extends AbstractRMojo
 	{
 		Log log = getLog();
 
-		log.info("ROxygenize started");
+		log.info("ROxygenize started.");
 		checkRPackageVersion();
 		setupDirectories();
 
@@ -59,5 +59,7 @@ public class ROxygenizeMojo extends AbstractRMojo
 			log.debug("Executing R statement: " + statement);
 			tryCatch(statement);
 		}
+		
+		log.info("ROxygenize completed.");
 	}
 }

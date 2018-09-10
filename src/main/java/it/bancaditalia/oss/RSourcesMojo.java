@@ -8,14 +8,15 @@ import java.io.IOException;
 import java.io.InputStreamReader;
 import java.io.OutputStreamWriter;
 import java.io.PrintWriter;
+import java.nio.charset.Charset;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.LinkedHashSet;
 import java.util.LinkedList;
 import java.util.List;
-import java.util.regex.Matcher;
-import java.util.regex.Pattern;
 
+import org.apache.maven.model.Developer;
+import org.apache.maven.model.License;
 import org.apache.maven.model.Resource;
 import org.apache.maven.plugin.MojoExecutionException;
 import org.apache.maven.plugin.logging.Log;
@@ -32,9 +33,11 @@ import org.codehaus.plexus.component.repository.exception.ComponentLookupExcepti
 import org.codehaus.plexus.util.ReaderFactory;
 
 /**
- * Goal that prepares R sources.
+ * <p>Goal that prepares R sources. Standard location for R package sources is inside src/main/R.</p>
  * 
- * This class uses code from maven-resources-plugin
+ * <p>This class uses code extracted from <a href="https://maven.apache.org/plugins/maven-resources-plugin/">Maven Resources Plugin</a>.</p>
+ * 
+ * <p>Maven Resources Plugin is licensed under the <a href="http://www.apache.org/licenses/">Apache License</a>.</p>
  */
 @Mojo(name = "sources", defaultPhase = LifecyclePhase.PROCESS_SOURCES)
 public class RSourcesMojo extends AbstractRMojo
@@ -50,9 +53,9 @@ public class RSourcesMojo extends AbstractRMojo
 	@Parameter(defaultValue = "${project.build.outputDirectory}", required = true) private File				outputDirectory;
 
 	/**
-	 * Enable filtering of R source files.
+	 * Set it to {@code false} to disable automatic filtering of R source files.
 	 */
-	@Parameter(defaultValue = "false") protected boolean													filterSources;
+	@Parameter(defaultValue = "true") protected boolean													filterSources;
 
 	/**
 	 * The list of additional filter properties files to be used along with System and project properties, which would be
@@ -207,10 +210,12 @@ public class RSourcesMojo extends AbstractRMojo
 
 		List<Resource> resources = Collections.singletonList(sourceResourceDirectory);
 
-		if (StringUtils.isEmpty(encoding) && filterSources)
+		if (StringUtils.isEmpty(encoding))
 		{
 			getLog().warn("File encoding has not been set, using platform encoding " + ReaderFactory.FILE_ENCODING + ", i.e. build is platform dependent!");
 			getLog().warn("Please take a look into the FAQ: https://maven.apache.org/general.html#encoding-warning");
+			
+			encoding = Charset.defaultCharset().toString();
 		}
 
 		try
@@ -248,27 +253,30 @@ public class RSourcesMojo extends AbstractRMojo
 				if (description.length() > 100000)
 					throw new MojoExecutionException("DESCRIPTION file is too big.");
 
+				// This will patch DESCRIPTION file to use pom values.
 				List<String> lines = new LinkedList<>();
 				try (BufferedReader reader = new BufferedReader(new InputStreamReader(new FileInputStream(description), encoding)))
 				{
 					String line;
-					String rVersion = checkRPackageVersion();
-					Pattern pattern = Pattern.compile("(?<=^Version:\\s)\\s*(\\d+[-.]\\d+([-.]\\d+)?)");
 
 					while ((line = reader.readLine()) != null)
 					{
-						Matcher matcher = pattern.matcher(line);
-						if (matcher.find())
+						if (line.startsWith("Version:"))
+							line = "Version: " + checkRPackageVersion();
+						else if (line.startsWith("License:"))
 						{
-							if (!rVersion.equals(matcher.group(1)))
-							{
-								getLog().warn("Replacing declared package version " + matcher.group(1) + " with maven project version.");
-								getLog().warn("To avoid this message, make sure that you have this line in your DESCRIPTION file:");
-								getLog().warn("        Version: " + rVersion);
-							}
-
-							line = matcher.replaceAll(rVersion);
+							line = "License:";
+							for (License license: project.getLicenses())
+								line += " " + license.getName();
 						}
+						else if (line.startsWith("Author:"))
+						{
+							line = "Author:";
+							for (Developer dev: project.getDevelopers())
+								line += " " + dev.getName();
+						}
+						else if (line.startsWith("Maintainer:") && project.getDevelopers().size() > 0)
+							line = "Maintainer: " + project.getDevelopers().get(0).getName() + " <" + project.getDevelopers().get(0).getEmail() + ">";
 
 						lines.add(line);
 					}
@@ -276,8 +284,9 @@ public class RSourcesMojo extends AbstractRMojo
 
 				try (PrintWriter writer = new PrintWriter(new OutputStreamWriter(new FileOutputStream(description), encoding)))
 				{
+					// Fix Windows paths
 					for (String line : lines)
-						writer.println(line);
+						writer.println(line.replaceAll("\\\\", "\\\\"));
 				}
 			}
 		}

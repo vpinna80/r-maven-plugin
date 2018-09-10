@@ -22,6 +22,8 @@ import com.sun.jna.Platform;
 
 public abstract class AbstractRMojo extends AbstractMojo
 {
+	private static final String														ERROR_ATTR		= "JRIERROR";
+	protected static final Pattern													RVERSIONPATTERN	= Pattern.compile("(\\d+)[-.](\\d+)(?=[-.](\\d+))?.*");
 	private static Rengine															engine;
 
 	@Component protected MavenProjectHelper											mavenProjectHelper;
@@ -53,6 +55,8 @@ public abstract class AbstractRMojo extends AbstractMojo
 		libc INSTANCE = (libc) Native.loadLibrary(Platform.isWindows() ? "msvcrt" : "c", libc.class);
 
 		int setenv(String name, String value, int overwrite);
+
+		int open(String pathname, int flags);
 	}
 
 	public synchronized Rengine getEngine() throws MojoExecutionException
@@ -155,12 +159,15 @@ public abstract class AbstractRMojo extends AbstractMojo
 
 	public REXP tryCatch(String expression) throws MojoExecutionException
 	{
-		synchronized (engine)
+		synchronized (getEngine())
 		{
-			expression = "tryCatch({ " + expression + "}, error = function(e) { e <- e[1,1]; attr(e, 'ERROR') <- T; e })";
+			expression = "tryCatch({ " + expression + "}, error = function(e) { e <- e[1]; attr(e, '" + ERROR_ATTR + "') <- T; e })";
+			getLog().debug(expression);
 			REXP res = engine.eval(expression);
-			if (res != null && res.getAttribute("ERROR") != null && res.getAttribute("ERROR").asBool() != null && res.getAttribute("ERROR").asBool().isTRUE())
-				throw new MojoExecutionException("R engine threw an error: " + res);
+			getLog().debug(res.toString());
+			if (res != null && res.getAttribute(ERROR_ATTR) != null && res.getAttribute(ERROR_ATTR).asBool() != null
+					&& res.getAttribute(ERROR_ATTR).asBool().isTRUE())
+				throw new MojoExecutionException("R engine threw an error: " + res.asVector().at(0).asString());
 			else
 				return res;
 		}
@@ -168,17 +175,22 @@ public abstract class AbstractRMojo extends AbstractMojo
 
 	protected String checkRPackageVersion() throws MojoExecutionException
 	{
-		Matcher versionMatcher = Pattern.compile("(\\d+[-.]\\d+([-.]\\d+)?).*").matcher(project.getVersion());
+		Matcher versionMatcher = RVERSIONPATTERN.matcher(project.getVersion());
 		if (versionMatcher.find())
-			return versionMatcher.group(1);
+			return versionMatcher.group(1) + "." + versionMatcher.group(2) + (versionMatcher.groupCount() > 2 ? "-" + versionMatcher.group(3) : "");
 		else
-			throw new MojoExecutionException(
-					"Project version \"" + project.getVersion() + "\" does not match regular expression \"(\\d+[-.]\\d+([-.]\\d+)?).*\"");
+			throw new MojoExecutionException("Project version \"" + project.getVersion() 
+					+ "\" does not match regular expression \"(\\d+[-.]\\d+([-.]\\d+)?).*\"");
 	}
 
 	protected void setupDirectories()
 	{
 		new File(project.getBuild().getDirectory()).mkdirs();
 		new File(project.getBuild().getOutputDirectory()).mkdirs();
+	}
+
+	protected String sanitize(String path)
+	{
+		return path != null ? path.replaceAll("\\\\", "\\\\").replaceAll("'", "\\'") : null;
 	}
 }

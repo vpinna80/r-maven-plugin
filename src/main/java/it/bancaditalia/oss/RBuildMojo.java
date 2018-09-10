@@ -42,8 +42,6 @@ public class RBuildMojo extends AbstractRMojo
 				File artifact = new File(res.asString());
 				log.info("Added artifact " + artifact + " to project" + (classifier == null ? "" : " with classifier " + classifier) + ".");
 				mavenProjectHelper.attachArtifact(project, "tar.gz", classifier, artifact);
-				if (!project.getVersion().matches("(\\d+[-.]\\d+([-.]\\d+)?)"))
-					log.warn("Final artifact name contains a version format not supported by R.");
 			} 
 			else if (classifier != null)
 				log.warn("Classifier specified with artifact attachment disabled.");
